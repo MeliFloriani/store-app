@@ -1,220 +1,144 @@
-# Store App
+﻿# Store App - Tienda Pública
 
-Aplicación frontend de tienda desarrollada con React, TypeScript y Vite.
+Tienda pública de FoodStore para clientes. Permite navegar el catálogo, agregar productos al carrito, gestionar direcciones y confirmar pedidos.
 
-Este proyecto corresponde a la interfaz de usuario para clientes y fue configurado utilizando una arquitectura modular basada en features para mejorar la organización, escalabilidad y mantenibilidad del código.
-
----
-
-# Tecnologías Utilizadas
-
-- React
-- TypeScript
-- Vite
-- React Router DOM
-- TanStack Query
-- Axios
-- Zustand
-- Tailwind CSS
-
----
-
-# Instalación
-
-Clonar el repositorio:
-
-```bash
-git clone <URL_DEL_REPOSITORIO>
-```
-
-Ingresar al proyecto:
+## Setup Local
 
 ```bash
 cd store-app
+npm install
+cp .env.example .env
 ```
 
-Instalar dependencias:
-
-```bash
-pnpm install
-```
-
----
-
-# Variables de Entorno
-
-Crear un archivo `.env` en la raíz del proyecto.
-
-Ejemplo:
+Configurar:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:8000/api/v1
 ```
 
-También se incluye un archivo:
+Levantar Vite:
+
+```bash
+npm run dev
+```
+
+URL local esperada:
 
 ```txt
-.env.example
+http://localhost:5174
 ```
 
-con las variables necesarias para el proyecto.
+> Si `5174` está ocupado, Vite asignará otro puerto. El backend debe estar corriendo en `http://localhost:8000`.
 
----
-
-# Ejecutar el Proyecto
-
-Iniciar servidor de desarrollo:
+## Build & Deployment
 
 ```bash
-pnpm dev
+npm run build
+npm run preview
 ```
 
-El proyecto estará disponible en:
+El build genera archivos estáticos en `dist/`.
 
-```txt
-http://localhost:5173
-```
+## Environment Variables
 
----
+| Variable | Descripción |
+| --- | --- |
+| VITE_API_URL | URL base del backend API. En local: http://localhost:8000/api/v1. |
 
-# Scripts Disponibles
-
-## Desarrollo
-
-```bash
-pnpm dev
-```
-
-## Build de Producción
-
-```bash
-pnpm build
-```
-
-## Preview de Producción
-
-```bash
-pnpm preview
-```
-
----
-
-# Estructura del Proyecto
+## Estructura
 
 ```txt
 src/
   features/
-    products/
-      components/
-      hooks/
-      pages/
-      services/
-      types.ts
-
-  shared/
-    lib/
-
-  store/
-
-  router/
-
-  App.tsx
-  main.tsx
+    products/    Hooks, servicios, tipos y páginas de productos.
+    addresses/   Hooks, servicios, tipos y páginas de direcciones de entrega.
+    orders/      Hooks, servicios, tipos y páginas de carrito/pedidos.
+  pages/          Páginas de tienda si se agregan a nivel global.
+  store/          Zustand: cart store y, si aplica, auth store.
+  shared/         Axios config, layout y componentes comunes.
+  router/         Rutas públicas y autenticadas.
 ```
 
----
+## Funcionalidades
 
-# Arquitectura
+- Catálogo público de productos.
+- Detalle de producto.
+- Carrito con persistencia en `localStorage`.
+- Crear cuenta / Login, si está habilitado.
+- Gestión de direcciones de entrega.
+- Checkout con selección de dirección principal.
+- Historial de pedidos para usuarios autenticados.
 
-El proyecto utiliza una arquitectura basada en módulos/features.
+## Flujo de Usuario
 
-Cada feature contiene:
+1. Navega catálogo.
+2. Agrega productos al carrito.
+3. Carrito: revisa items y cantidades.
+4. Checkout: crea cuenta o inicia sesión, si corresponde.
+5. Crea o selecciona dirección de entrega.
+6. Confirma pedido.
+7. Consulta historial de pedidos.
 
-- components → componentes específicos del dominio
-- hooks → lógica reutilizable y custom hooks
-- pages → páginas y rutas
-- services → integración con APIs
-- types.ts → interfaces y tipos TypeScript
-
-La carpeta `shared` contiene funcionalidades reutilizables globales.
-
----
-
-# Configuraciones Implementadas
-
-## Tailwind CSS
-
-Tailwind está configurado globalmente mediante:
-
-```css
-@import "tailwindcss";
-```
-
----
-
-## React Query
-
-Se configuró `QueryClientProvider` para manejo de fetching y cache de datos.
-
----
-
-## React Router DOM
-
-Se implementó navegación mediante `createBrowserRouter`.
-
----
-
-## Zustand
-
-Se creó un store global de carrito:
+## Rutas Principales
 
 ```txt
-useCartStore
+/store                         Catálogo de productos.
+/store/productos/:id           Detalle de producto.
+/store/carrito                 Carrito y confirmación.
+/store/pedidos                 Pedidos propios.
+/store/direcciones             Direcciones de entrega.
+/store/direcciones/nueva       Crear dirección.
 ```
 
----
+## Persistencia
 
-## Axios
+- Carrito en `localStorage`.
+  - Key actual: `foodstore-store-cart`.
+  - Referencia funcional: `store-app-cart`.
+- Token en `localStorage`.
+  - Key esperada para requests: `store-app-token`.
 
-Se configuró una instancia global de Axios utilizando variables de entorno.
+## Integración con Backend
 
-Archivo:
+Endpoints principales consumidos:
 
-```txt
-src/shared/lib/axios.ts
+```http
+GET  /api/v1/productos
+GET  /api/v1/productos/{id}
+GET  /api/v1/direcciones-entrega
+POST /api/v1/direcciones-entrega
+PUT  /api/v1/direcciones-entrega/{id}
+DELETE /api/v1/direcciones-entrega/{id}
+GET  /api/v1/pedidos
+POST /api/v1/pedidos
 ```
 
----
+## Dependencias
 
-# Estado Actual
-
-Setup inicial completo con:
-
-- Arquitectura modular
-- Routing
-- Estado global
-- Configuración HTTP
-- Tailwind CSS
+- React
+- TypeScript
+- Vite
+- TailwindCSS
 - React Query
+- React Router
+- Zustand
+- Axios
 
-El proyecto quedó preparado para comenzar el desarrollo de funcionalidades de la tienda.
+## Notas de Autenticación
 
----
+Algunos endpoints, como direcciones y pedidos propios, requieren usuario autenticado con rol `CLIENT`.
 
-# Requisitos
+Durante desarrollo, si todavía no hay login de tienda, el cliente Axios puede usar un token guardado en:
 
-- Node.js 20+
-- pnpm
-
-Verificar versiones:
-
-```bash
-node -v
-pnpm -v
+```txt
+localStorage.store-app-token
 ```
 
----
+## Ejemplo de flujo local
 
-# Autor
-
-Proyecto académico desarrollado para la entrega de setup inicial frontend.
+1. Iniciar backend en puerto `8000`.
+2. Iniciar store-app.
+3. Abrir `/store`.
+4. Agregar productos al carrito.
+5. Crear dirección desde `/store/direcciones/nueva`.
+6. Confirmar pedido desde `/store/carrito`.

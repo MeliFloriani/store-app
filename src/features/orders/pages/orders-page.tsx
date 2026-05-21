@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 
+import { getApiErrorMessage } from '../../../shared/lib/api-error'
 import { useStorePedidos } from '../hooks/use-store-pedidos'
 
 type LocationState = {
@@ -9,7 +10,7 @@ type LocationState = {
 export function OrdersPage() {
   const location = useLocation()
   const state = location.state as LocationState | null
-  const { data: pedidos = [], isLoading, isError } = useStorePedidos()
+  const { data: pedidos = [], error, isLoading, isError } = useStorePedidos()
 
   if (isLoading) {
     return <p className="text-slate-600">Cargando pedidos...</p>
@@ -29,8 +30,11 @@ export function OrdersPage() {
       )}
 
       {isError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-          No pudimos cargar tus pedidos. Iniciá sesión como cliente y reintentá.
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+          {getApiErrorMessage(
+            error,
+            'No pudimos cargar tus pedidos. Reintenta en unos instantes.',
+          )}
         </div>
       )}
 

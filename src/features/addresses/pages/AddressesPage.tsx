@@ -14,21 +14,10 @@ import {
   getDireccionCompleta,
 } from '../types'
 import type { DireccionEntrega, DireccionFormData } from '../types'
+import { getApiErrorMessage } from '../../../shared/lib/api-error'
 
 function getErrorMessage(error: unknown) {
-  if (
-    error &&
-    typeof error === 'object' &&
-    'response' in error &&
-    error.response &&
-    typeof error.response === 'object' &&
-    'data' in error.response
-  ) {
-    const response = error.response as { data?: { detail?: string } }
-    return response.data?.detail ?? 'Error inesperado'
-  }
-
-  return error instanceof Error ? error.message : 'Error inesperado'
+  return getApiErrorMessage(error)
 }
 
 function AddressFormModal({
@@ -233,8 +222,9 @@ function AddressForm({
 }
 
 export function AddressesPage() {
-  const { data: direcciones = [], isLoading, isError } = useDirecciones()
+  const { data: direcciones = [], error, isLoading, isError } = useDirecciones()
   const [editing, setEditing] = useState<DireccionEntrega | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const deleteMutation = useEliminarDireccion()
   const principalMutation = useMarcarPrincipal()
 
@@ -243,7 +233,13 @@ export function AddressesPage() {
       return
     }
 
-    await deleteMutation.mutateAsync(direccion.id)
+    setActionError(null)
+
+    try {
+      await deleteMutation.mutateAsync(direccion.id)
+    } catch (err) {
+      setActionError(getErrorMessage(err))
+    }
   }
 
   if (isLoading) {
@@ -252,8 +248,11 @@ export function AddressesPage() {
 
   if (isError) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-        No pudimos cargar tus direcciones. Iniciá sesión como cliente y reintentá.
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+        {getApiErrorMessage(
+          error,
+          'No pudimos cargar tus direcciones. Reintenta en unos instantes.',
+        )}
       </div>
     )
   }
@@ -273,6 +272,12 @@ export function AddressesPage() {
           + Nueva dirección
         </Link>
       </div>
+
+      {actionError && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-800">
+          {actionError}
+        </div>
+      )}
 
       {direcciones.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
@@ -311,7 +316,12 @@ export function AddressesPage() {
                     <button
                       className="rounded-lg border border-orange-300 px-3 py-2 text-sm font-medium text-orange-700 hover:bg-orange-50 disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={principalMutation.isPending}
-                      onClick={() => principalMutation.mutate(direccion.id)}
+                      onClick={() => {
+                        setActionError(null)
+                        principalMutation.mutate(direccion.id, {
+                          onError: (err) => setActionError(getErrorMessage(err)),
+                        })
+                      }}
                       type="button"
                     >
                       Marcar principal

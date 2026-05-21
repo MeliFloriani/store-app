@@ -8,22 +8,11 @@ import {
   direccionToFormData,
 } from '../types'
 import type { DireccionFormData } from '../types'
+import { getApiErrorMessage } from '../../../shared/lib/api-error'
 import { AddressForm } from './AddressesPage'
 
 function getErrorMessage(error: unknown) {
-  if (
-    error &&
-    typeof error === 'object' &&
-    'response' in error &&
-    error.response &&
-    typeof error.response === 'object' &&
-    'data' in error.response
-  ) {
-    const response = error.response as { data?: { detail?: string } }
-    return response.data?.detail ?? 'Error inesperado'
-  }
-
-  return error instanceof Error ? error.message : 'Error inesperado'
+  return getApiErrorMessage(error)
 }
 
 export function NewAddressPage() {

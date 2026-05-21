@@ -5,6 +5,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDirecciones } from '../../addresses/hooks/use-direcciones'
 import { getDireccionCompleta } from '../../addresses/types'
 import { useCartStore } from '../../../store/use-cart-store'
+import {
+  CLIENT_SESSION_REQUIRED_MESSAGE,
+  getApiErrorMessage,
+} from '../../../shared/lib/api-error'
 import { useCrearPedido } from '../hooks/use-crear-pedido'
 
 const DEFAULT_FORMA_PAGO = 'EFECTIVO'
@@ -14,6 +18,7 @@ export function CartPage() {
   const [notas, setNotas] = useState('')
   const [formaPagoCodigo, setFormaPagoCodigo] = useState(DEFAULT_FORMA_PAGO)
   const [direccionId, setDireccionId] = useState<number | ''>('')
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const items = useCartStore((state) => state.items)
   const subtotal = useCartStore((state) => state.subtotal())
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -52,6 +57,12 @@ export function CartPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setSubmitError(null)
+
+    if (isDireccionesError) {
+      setSubmitError(CLIENT_SESSION_REQUIRED_MESSAGE)
+      return
+    }
 
     if (!direccionId) {
       navigate('/store/direcciones/nueva?redirect=/store/carrito')
@@ -74,6 +85,9 @@ export function CartPage() {
           navigate('/store/pedidos', {
             state: { message: `Pedido #${pedido.id} creado correctamente.` },
           })
+        },
+        onError: (error) => {
+          setSubmitError(getApiErrorMessage(error))
         },
       },
     )
@@ -184,8 +198,8 @@ export function CartPage() {
               Cargando direcciones...
             </p>
           ) : isDireccionesError ? (
-            <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-              No pudimos cargar tus direcciones.
+            <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+              {CLIENT_SESSION_REQUIRED_MESSAGE}
             </p>
           ) : (
             <select
@@ -241,8 +255,18 @@ export function CartPage() {
         </div>
 
         {crearPedidoMutation.isError && (
-          <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-            No se pudo crear el pedido. Iniciá sesión como cliente y reintentá.
+          <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            {submitError ??
+              getApiErrorMessage(
+                crearPedidoMutation.error,
+                'No se pudo crear el pedido. Reintentá en unos instantes.',
+              )}
+          </p>
+        )}
+
+        {!crearPedidoMutation.isError && submitError && (
+          <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            {submitError}
           </p>
         )}
 

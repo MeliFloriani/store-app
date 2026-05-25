@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios'
 
+// No hay login visible en store-app: si no existe cookie CLIENT, se informa sin exponer manejo de tokens.
 export const CLIENT_SESSION_REQUIRED_MESSAGE =
   'Para continuar se requiere una sesión de cliente. En esta entrega la tienda pública no incluye login visible; si ya tenés una cookie CLIENT válida, reintentá la acción.'
 
@@ -31,4 +32,3 @@ export function getApiErrorMessage(
 
   return error instanceof Error ? error.message : fallback
 }
-

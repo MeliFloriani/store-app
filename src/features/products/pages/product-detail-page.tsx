@@ -1,6 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 import { useCartStore } from '../../../store/use-cart-store'
+import { ProductAddedToast } from '../../../shared/components/product-added-toast'
 import { useStoreProducto } from '../hooks/use-store-producto'
 
 export function ProductDetailPage() {
@@ -8,6 +10,22 @@ export function ProductDetailPage() {
   const productoId = Number(id)
   const { data: producto, isLoading, isError } = useStoreProducto(productoId)
   const addProduct = useCartStore((state) => state.addProduct)
+  const [showAddedToast, setShowAddedToast] = useState(false)
+
+  const notifyProductAdded = () => {
+    setShowAddedToast(false)
+    window.setTimeout(() => setShowAddedToast(true), 0)
+  }
+
+  useEffect(() => {
+    if (!showAddedToast) return
+
+    const timeoutId = window.setTimeout(() => {
+      setShowAddedToast(false)
+    }, 2500)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [showAddedToast])
 
   if (isLoading) {
     return <p className="text-slate-600">Cargando producto...</p>
@@ -28,6 +46,8 @@ export function ProductDetailPage() {
 
   return (
     <section className="grid gap-8 lg:grid-cols-2">
+      <ProductAddedToast visible={showAddedToast} />
+
       <div className="flex min-h-80 items-center justify-center overflow-hidden rounded-3xl bg-slate-100">
         {producto.imagenes_url ? (
           <img
@@ -83,7 +103,10 @@ export function ProductDetailPage() {
         <button
           className="w-full rounded-xl bg-orange-600 px-4 py-3 font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-slate-300"
           disabled={!producto.disponible}
-          onClick={() => addProduct(producto)}
+          onClick={() => {
+            addProduct(producto)
+            notifyProductAdded()
+          }}
           type="button"
         >
           Agregar al carrito

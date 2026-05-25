@@ -94,6 +94,7 @@ export const useCartStore = create<CartStore>()(
       clearCart: () => set({ items: [] }),
     }),
     {
+      // El carrito persiste localmente por UX; no guarda credenciales ni tokens de sesión.
       name: 'foodstore-store-cart',
       partialize: (state) => ({ items: state.items }),
     },

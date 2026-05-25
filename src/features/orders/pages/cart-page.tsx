@@ -59,6 +59,7 @@ export function CartPage() {
     event.preventDefault()
     setSubmitError(null)
 
+    // La tienda es pública por consigna; las acciones protegidas muestran 401 amigable si falta cookie CLIENT.
     if (isDireccionesError) {
       setSubmitError(CLIENT_SESSION_REQUIRED_MESSAGE)
       return
@@ -250,7 +251,7 @@ export function CartPage() {
             <strong>${subtotal.toFixed(2)}</strong>
           </div>
           <p className="text-xs text-slate-500">
-            La API calculará envío, descuentos y total final al crear el pedido.
+            Se calculará envío, descuentos y total final al crear el pedido.
           </p>
         </div>
 

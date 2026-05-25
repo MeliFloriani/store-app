@@ -1,11 +1,24 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 import { useCartStore } from '../../../store/use-cart-store'
+import { ProductAddedToast } from '../../../shared/components/product-added-toast'
 import { useStoreProductos } from '../hooks/use-store-productos'
 import type { Producto } from '../types'
 
-function ProductCard({ producto }: { producto: Producto }) {
+function ProductCard({
+  producto,
+  onAddedToCart,
+}: {
+  producto: Producto
+  onAddedToCart: () => void
+}) {
   const addProduct = useCartStore((state) => state.addProduct)
+
+  const handleAddToCart = () => {
+    addProduct(producto)
+    onAddedToCart()
+  }
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -50,7 +63,7 @@ function ProductCard({ producto }: { producto: Producto }) {
           <button
             className="flex-1 rounded-lg bg-orange-600 px-3 py-2 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-slate-300"
             disabled={!producto.disponible}
-            onClick={() => addProduct(producto)}
+            onClick={handleAddToCart}
             type="button"
           >
             Agregar
@@ -63,6 +76,22 @@ function ProductCard({ producto }: { producto: Producto }) {
 
 export function ProductsPage() {
   const { data: productos = [], isLoading, isError } = useStoreProductos()
+  const [showAddedToast, setShowAddedToast] = useState(false)
+
+  const notifyProductAdded = () => {
+    setShowAddedToast(false)
+    window.setTimeout(() => setShowAddedToast(true), 0)
+  }
+
+  useEffect(() => {
+    if (!showAddedToast) return
+
+    const timeoutId = window.setTimeout(() => {
+      setShowAddedToast(false)
+    }, 2500)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [showAddedToast])
 
   if (isLoading) {
     return <p className="text-slate-600">Cargando productos...</p>
@@ -78,6 +107,8 @@ export function ProductsPage() {
 
   return (
     <section className="space-y-6">
+      <ProductAddedToast visible={showAddedToast} />
+
       <div>
         <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">
           Tienda
@@ -90,7 +121,11 @@ export function ProductsPage() {
 
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {productos.map((producto) => (
-          <ProductCard key={producto.id} producto={producto} />
+          <ProductCard
+            key={producto.id}
+            producto={producto}
+            onAddedToCart={notifyProductAdded}
+          />
         ))}
       </div>
 

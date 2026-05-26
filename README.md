@@ -150,3 +150,5 @@ Sin cookie CLIENT valida, las pantallas muestran mensajes claros y no eliminan e
 - React Router
 - Zustand
 - Axios
+
+- Link del video: https://youtu.be/EG4rBA5qhPo
